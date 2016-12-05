@@ -1,7 +1,7 @@
 ######### Autor: Alicja Wolny-Dominiak, 
 ######### Uniwersytet Ekonomiczny w Katowicach, mailto: woali@ue.katowice.pl
 ######### Modele mieszane w wybranych zagadnieniach ubezpieczeniwych
-#########Model częsości szkód
+#########Model częstości szkód
 #########Model wartości szkody
 #########Składka czysta
 #########Taryfikacja a posterioru - Bonus-Malus Factor BMF
