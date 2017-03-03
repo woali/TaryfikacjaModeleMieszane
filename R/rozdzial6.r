@@ -22,16 +22,15 @@ library(cplm)
 library(dglm)
 options(OutDec=",")
 
-auto1 = read.csv2(file="d:/Uczelnia_Nauka/Grant NCN/Dane DS/dane Polska 1.csv") #### cross-sectional, usunięte kilkanaście polis z ogona
-#quant2 = read.csv2(file="d:/Uczelnia_Nauka/Grant NCN/Dane DS/quant.csv") #### cross-sectional, usunięte kilkanaście polis z ogona
-panel= read.csv2(file="d:/Uczelnia_Nauka/Grant NCN/Dane DS/panel1.csv")
+auto1 = read.csv2(file="") #### cross-sectional
+panel= read.csv2(file="")
 claims.nz=auto1$CLAIM_AMOUNT>0 ## niezerowe wartości szkód
 claims.nzp=panel$CLAIM_AMOUNT>0 ## niezerowe wartości szkód
 
 
 ### Mapa szkodowości
 #woj<-readShapePoly("C:/POL/POL_adm1.shp")
-woj<-readShapePoly("C:/POL/POL1.shp")
+woj<-readShapePoly("/POL/POL1.shp")
 plot(woj)
 title(main="Mapa województw w Polsce")
 colors<-cm.colors(16,alpha=1)
@@ -72,12 +71,10 @@ write.csv2(summary(Y.d)$coefficients,"d:/Uczelnia_Nauka/Grant NCN/!!!Ksiązka zm
 N=glm(CLAIM_COUNT[claims.nz]~as.factor(SEX)[claims.nz]+as.factor(CLIENT_AGE)[claims.nz]+as.factor(POWER)[claims.nz]+as.factor(CAPACITY)[claims.nz], 
 offset=EXPOSURE[claims.nz], family=poisson(log), data=auto1) 
 summary(N)
-write.csv2(summary(N)$coefficients,"d:/Uczelnia_Nauka/Grant NCN/_Ksiazka finisz/R/N.glm.summary.csv")
 
 N.d=glm(CLAIM_COUNT[claims.nz]~+as.factor(SEX)[claims.nz]+as.factor(CLIENT_AGE)[claims.nz]+as.factor(POWER)[claims.nz]+as.factor(CAPACITY)[claims.nz], 
 offset=EXPOSURE[claims.nz], family=poisson(log), data=auto1) 
 summary(N.d)
-write.csv2(summary(N.d)$coefficients,"d:/Uczelnia_Nauka/Grant NCN/!!!Ksiązka zmiana układu po tel/R/N.d.summary.csv")
 
 ## Składka - bez uwzglednienia ryzyk bezszkodowych
 
@@ -91,10 +88,6 @@ tau1=exp(logit.tau)/(1+exp(logit.tau)) ### prawdopodobieństwo nie wystąpienia 
 zip=zeroinfl(CLAIM_COUNT~as.factor(SEX)+as.factor(CLIENT_AGE)+as.factor(POWER)+as.factor(CAPACITY)|as.factor(CLIENT_AGE)+as.factor(POWER)+as.factor(CAPACITY), 
 offset=log(auto1$EXPOSURE), data=auto1)
 summary(zip)
-
-write.csv2(summary(zip)$coefficients$count,"d:/Uczelnia_Nauka/Grant NCN/!!!Ksiązka zmiana układu po tel/R/zip.csv")
-write.csv2(summary(zip)$coefficients$zero,"d:/Uczelnia_Nauka/Grant NCN/!!!Ksiązka zmiana układu po tel/R/zip.zero.csv")
-
 
 
 ############ KLASTRY
@@ -112,9 +105,6 @@ summary(Y.V)$varRanef
 summary(Y.V)$SummVC1
 summary(Y.V)$SummVC2
 summary(Y.V)
-
-write.csv2(summary(Y.V)$FixCoefMat ,"d:/Uczelnia_Nauka/Grant NCN/_Ksiazka finisz/R/Y.V.fix.csv")
-write.csv2(summary(Y.V)$RandCoefMa ,"d:/Uczelnia_Nauka/Grant NCN/_Ksiazka finisz/R/Y.V.random.csv")
 
 plot(quantile(auto1$CLAIM_AMOUNT[claims.nz], probs=seq(0.4,0.7,0.0001)), quantile(Y$fitted.values, probs=seq(0.4,0.7,0.0001)),xlab="Obserwacje wartości szkód dla pojedynczej polisy", 
 ylab="Wartości oszacowane", main="")
@@ -138,24 +128,17 @@ summary(N.V)$SummVC1
 summary(N.V)$SummVC2
 summary(N.V)
 
-write.csv2(summary(N.V)$FixCoefMat ,"d:/Uczelnia_Nauka/Grant NCN/_Ksiazka finisz/R/N.V.hglm.fix.csv")
-write.csv2(summary(N.V)$RandCoefMa ,"d:/Uczelnia_Nauka/Grant NCN/_Ksiazka finisz/R/N.V.hglm.random.csv")
-
 ##### Model łącznej wartości szkód $GLM-CPOIS$
 NC=cpglm(CLAIM_AMOUNT[claims.nz]~VOIVODESHIP[claims.nz]+as.factor(SEX)[claims.nz]+as.factor(CLIENT_AGE)[claims.nz]+as.factor(POWER)[claims.nz]+as.factor(CAPACITY)[claims.nz], 
 offset=log(auto1$EXPOSURE)[claims.nz], link="log", data=auto1)
 summary(NC)
-write.csv2(summary(NC)$coefficients ,"d:/Uczelnia_Nauka/Grant NCN/_Ksiazka finisz/R/NC.glm.csv")
 
 NC.zi=zcpglm(CLAIM_AMOUNT~VOIVODESHIP+as.factor(SEX)+as.factor(CLIENT_AGE)+as.factor(POWER)+as.factor(CAPACITY)||as.factor(SEX)+as.factor(CLIENT_AGE)+as.factor(POWER)+as.factor(CAPACITY), 
 offset=log(auto1$EXPOSURE), link="log", data=auto1)
 summary(NC.zi)
-write.csv2(summary(NC.zi)$coefficients$zero ,"d:/Uczelnia_Nauka/Grant NCN/_Ksiazka finisz/R/NC.zi.zero.csv")	
-write.csv2(summary(NC.zi)$coefficients$tweedie ,"d:/Uczelnia_Nauka/Grant NCN/_Ksiazka finisz/R/NC.zi.nonzero.csv")
 
 logit.tau=NC.zi$coefficients$zero
 tau1=exp(logit.tau)/(1+exp(logit.tau)) ### prawdopodobieństwo nie wystąpienia szkody
-write.csv2(tau1 ,"d:/Uczelnia_Nauka/Grant NCN/_Ksiazka finisz/R/NC.zi.tau1.csv")
 
 ##### Model łącznej wartości szkód $HGLM-CPOIS$
 NC.V=cpglmm(CLAIM_AMOUNT[claims.nz]~as.factor(SEX)[claims.nz]+as.factor(CLIENT_AGE)[claims.nz]+as.factor(POWER)[claims.nz]+as.factor(CAPACITY)[claims.nz]+(1|auto1$VOIVODESHIP[claims.nz]), 
@@ -175,18 +158,12 @@ random=~1|CLIENT_NUMBER[claims.nzp],rand.family=Gamma(log),
 offset=log(panel$EXPOSURE[claims.nzp]), family=poisson(log), data=panel)
 summary(N.p)
 
-write.csv2(summary(N.p)$FixCoefMat ,"d:/Uczelnia_Nauka/Grant NCN/_Ksiazka finisz/R/N.p.hglm.fix.csv")
-write.csv2(summary(N.p)$RandCoefMa ,"d:/Uczelnia_Nauka/Grant NCN/_Ksiazka finisz/R/N.p.hglm.random.csv")
-
 ####### Model HGLM-POIS modelowanie dyspersji
 
 N.p.d=hglm(fixed=CLAIM_COUNT[claims.nzp]~as.factor(SEX)[claims.nzp]+as.factor(ENGINE)[claims.nzp]+as.factor(POWER_RANGE)[claims.nzp]+as.factor(CAR_AGE_RANGE)[claims.nzp], 
 random=~1|CLIENT_NUMBER[claims.nzp],rand.family=Gamma(log), disp=~as.factor(SEX)[claims.nzp],
 offset=log(panel$EXPOSURE[claims.nzp]), family=poisson(log), data=panel)
 summary(N.p.d)
-write.csv2(summary(N.p.d)$FixCoefMat ,"d:/Uczelnia_Nauka/Grant NCN/_Ksiazka finisz/R/N.p.d.hglm.fix.csv")
-write.csv2(summary(N.p.d)$RandCoefMa ,"d:/Uczelnia_Nauka/Grant NCN/_Ksiazka finisz/R/N.p.d.hglm.random.csv")
-
 
 ############################################################################
 ##### Model częstosci szkód NLM-ZIP
@@ -211,9 +188,6 @@ summary(tau.binomial)
 tau.binomial1=glm(as.numeric(ind2)~as.factor(Wiek.kier)+as.factor(Klasa.MC)+as.factor(Wiek.poj),
 family=binomial(link="logit"), data=auto1_logit)
 summary(tau.binomial1)
-write.csv2(summary(tau.binomial)$coefficients,"d:/Uczelnia_Nauka/Grant NCN/Wyniki R/ZA.bi.csv")
-write.csv2(summary(tau.binomial1)$coefficients,"d:/Uczelnia_Nauka/Grant NCN/Wyniki R/ZA.bi11.csv")
-
 
 
 
